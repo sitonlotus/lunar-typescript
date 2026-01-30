@@ -173,6 +173,26 @@ export class SolarUtil {
         '11-4-4': '感恩节'
     };
 
+    /**
+     * 判断是否为闰年
+     * 
+     * @param year 年份
+     * @returns 是否为闰年（true表示闰年，false表示平年）
+     * 
+     * 闰年规则：
+     * - 1600年之前：能被4整除的年份是闰年
+     * - 1600年及以后：
+     *   - 能被4整除但不能被100整除的年份是闰年
+     *   - 能被400整除的年份也是闰年
+     * 
+     * 示例：
+     * ```typescript
+     * SolarUtil.isLeapYear(2000); // 返回true（能被400整除）
+     * SolarUtil.isLeapYear(2004); // 返回true（能被4整除且不能被100整除）
+     * SolarUtil.isLeapYear(1900); // 返回false（能被100整除但不能被400整除）
+     * SolarUtil.isLeapYear(1500); // 返回true（1600年之前，能被4整除）
+     * ```
+     */
     static isLeapYear(year: number): boolean {
         if (year < 1600) {
             return year % 4 === 0;
@@ -180,6 +200,25 @@ export class SolarUtil {
         return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
     }
 
+    /**
+     * 获取指定月份的天数
+     * 
+     * @param year 年份
+     * @param month 月份（1-12）
+     * @returns 指定月份的天数
+     * 
+     * 特殊处理：
+     * - 1582年10月：由于格里高利历改革，该月只有21天
+     * - 2月份：根据是否为闰年自动调整天数（28天或29天）
+     * 
+     * 示例：
+     * ```typescript
+     * SolarUtil.getDaysOfMonth(2023, 2); // 返回28（平年2月）
+     * SolarUtil.getDaysOfMonth(2024, 2); // 返回29（闰年2月）
+     * SolarUtil.getDaysOfMonth(2023, 4); // 返回30（4月）
+     * SolarUtil.getDaysOfMonth(2023, 5); // 返回31（5月）
+     * ```
+     */
     static getDaysOfMonth(year: number, month: number): number {
         if (1582 === year && 10 === month) {
             return 21;
@@ -192,6 +231,25 @@ export class SolarUtil {
         return d;
     }
 
+    /**
+     * 获取指定年份的总天数
+     * 
+     * @param year 年份
+     * @returns 指定年份的总天数（365天或366天）
+     * 
+     * 特殊处理：
+     * - 1582年：由于格里高利历改革，该年只有355天
+     * - 其他年份：
+     *   - 闰年：366天
+     *   - 平年：365天
+     * 
+     * 示例：
+     * ```typescript
+     * SolarUtil.getDaysOfYear(2023); // 返回365（平年）
+     * SolarUtil.getDaysOfYear(2024); // 返回366（闰年）
+     * SolarUtil.getDaysOfYear(1582); // 返回355（格里高利历改革年）
+     * ```
+     */
     static getDaysOfYear(year: number): number {
         if (1582 === year) {
             return 355;
@@ -199,6 +257,29 @@ export class SolarUtil {
         return SolarUtil.isLeapYear(year) ? 366 : 365;
     }
 
+    /**
+     * 获取指定日期在当年的第几天
+     * 
+     * @param year 年份
+     * @param month 月份（1-12）
+     * @param day 日期（1-31）
+     * @returns 指定日期在当年的第几天（1-366）
+     * 
+     * 特殊处理：
+     * - 1582年10月：
+     *   - 10月15日及以后：日期减去10天（因为格里高利历改革删除了10月5日至14日）
+     *   - 10月5日至14日：抛出错误（这些日期在格里高利历中不存在）
+     * 
+     * 示例：
+     * ```typescript
+     * SolarUtil.getDaysInYear(2023, 1, 1); // 返回1（1月1日是第1天）
+     * SolarUtil.getDaysInYear(2023, 3, 1); // 返回60（平年3月1日是第60天）
+     * SolarUtil.getDaysInYear(2024, 3, 1); // 返回61（闰年3月1日是第61天）
+     * SolarUtil.getDaysInYear(2023, 12, 31); // 返回365（平年最后一天）
+     * ```
+     * 
+     * @throws 如果日期无效（如1582年10月5日至14日）
+     */
     static getDaysInYear(year: number, month: number, day: number): number {
         let days = 0;
         for (let i = 1; i < month; i++) {
@@ -216,10 +297,66 @@ export class SolarUtil {
         return days;
     }
 
+    /**
+     * 获取指定月份包含的周数
+     * 
+     * @param year 年份
+     * @param month 月份（1-12）
+     * @param start 周起始日（0-6，0表示星期日，1表示星期一，...，6表示星期六）
+     * @returns 指定月份包含的周数（4-6周）
+     * 
+     * 算法说明：
+     * - 计算月份天数与该月第一天的星期和周起始日的偏移之和
+     * - 结果除以7并向上取整得到周数
+     * 
+     * 示例：
+     * ```typescript
+     * // 2023年12月有31天，12月1日是星期五（星期5）
+     * SolarUtil.getWeeksOfMonth(2023, 12, 1); // 以星期一为起始日，返回5周
+     * SolarUtil.getWeeksOfMonth(2023, 12, 0); // 以星期日为起始日，返回5周
+     * 
+     * // 2024年2月有29天，2月1日是星期四（星期4）
+     * SolarUtil.getWeeksOfMonth(2024, 2, 1); // 以星期一为起始日，返回5周
+     * SolarUtil.getWeeksOfMonth(2024, 2, 0); // 以星期日为起始日，返回6周
+     * ```
+     */
     static getWeeksOfMonth(year: number, month: number, start: number): number {
         return Math.ceil((SolarUtil.getDaysOfMonth(year, month) + Solar.fromYmd(year, month, 1).getWeek() - start) / 7);
     }
 
+    /**
+     * 计算两个日期之间的天数差
+     * 
+     * @param ay 起始日期年份
+     * @param am 起始日期月份（1-12）
+     * @param ad 起始日期日期（1-31）
+     * @param by 结束日期年份
+     * @param bm 结束日期月份（1-12）
+     * @param bd 结束日期日期（1-31）
+     * @returns 天数差（结束日期减去起始日期的天数）
+     * 
+     * 算法说明：
+     * - 同年：结束日期的年内天数减去起始日期的年内天数
+     * - 跨年份：
+     *   - 计算起始日期到年末的天数
+     *   - 加上中间所有年份的总天数
+     *   - 加上结束日期的年内天数
+     * 
+     * 示例：
+     * ```typescript
+     * // 同年不同月
+     * SolarUtil.getDaysBetween(2023, 1, 1, 2023, 1, 10); // 返回9（相差9天）
+     * 
+     * // 跨月份
+     * SolarUtil.getDaysBetween(2023, 12, 25, 2024, 1, 1); // 返回7（12月25日到1月1日相差7天）
+     * 
+     * // 跨年份
+     * SolarUtil.getDaysBetween(2022, 12, 31, 2024, 1, 1); // 返回366（平年+闰年）
+     * 
+     * // 反向计算
+     * SolarUtil.getDaysBetween(2023, 1, 10, 2023, 1, 1); // 返回-9（负号表示结束日期在起始日期之前）
+     * ```
+     */
     static getDaysBetween(ay: number, am: number, ad: number, by: number, bm: number, bd: number): number {
         if (ay == by) {
             return SolarUtil.getDaysInYear(by, bm, bd) - SolarUtil.getDaysInYear(ay, am, ad);

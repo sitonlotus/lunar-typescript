@@ -1356,6 +1356,12 @@ export class LunarUtil {
         ';000A003837041A1316624640425D6A5F;01360B00042D194A5E6B4B60;020009111B032C06100548413C;030020321C310310061F056869;0400224754495C7344;05070D1D334F505651523F3E;063509232F01554C4D4E453C59;070C24575864615A;0802270E34082A01433D;09020721282908016E653D66;0A0A042B15536C3C6F;0B360B0412182526300F14175B633E;0C1A13031605624640425D6A6D5F;0D2D03194A5E6B4B60;0E2E111B33061048413C;0F0020321C31031E061F68693F;1035090022034754495C44;11000C070D1D334F505651523E;1200232F01554C4D4E453C59;130024575864616D5A;140A0204270E0F082A01433D;15360B0204072128290801653D66;162B15536C3C;17121825260D0F14175B633E;181A1316624640425D6A5F82;192D03194A5E6B4B3F60;1A35092E111B032C061048413C;1B0C20321C31031E061F056869;1C224754495C44;1D07121D334F505651523E;1E0A04232F01554C4D4E453C59;1F360B0424575864615A;2002270E34082A01433D;2102072128290801653D66;222B15536C3C;2312182526300F14175B633F3E;2435091A13031605624640425D6A5F;250C2D03194A5E6B4B60;262E111B2C06100548413C;2720321C311E061F056869;280A04224746495C44;29360B04070D1D334F505651523E;2A232F01554C4D4E45703C59;2B2457586461675A96;2C02270E34082A433D;2D0002072128290801653F3D66;2E3509002B15536C3C;2F000C12182526300F14175B633E;30001A1316624640717D425D6A5F82;31002D194A5E6B4B676D6076;320A042E111B2C06100548413C6F67;33360B0420321C311E061F0568696E;3422034754495C44;35070D1D334F50567051523E;36232F554C4D4E453C59;3724575864613F675A;38350902270E34082A01433D67;39020C07212829080175653D66;3A2B15536C3C;3B12182526300F14175B63727D3E7974;'
     ];
 
+    /**
+     * 根据时分获取时支索引
+     * 
+     * @param hm 时分字符串，格式为"HH:MM"
+     * @returns 时支索引（0-11），分别对应子、丑、寅、卯、辰、巳、午、未、申、酉、戌、亥
+     */
     static getTimeZhiIndex(hm: string): number {
         if (!hm) {
             return 0;
@@ -1373,14 +1379,32 @@ export class LunarUtil {
         return 0;
     }
 
+    /**
+     * 将时分转换为农历时辰
+     * 
+     * @param hm 时分字符串，格式为"HH:MM"
+     * @returns 农历时辰，如"子"、"丑"等
+     */
     static convertTime(hm: string): string {
         return LunarUtil.ZHI[LunarUtil.getTimeZhiIndex(hm) + 1];
     }
 
+    /**
+     * 获取干支索引
+     * 
+     * @param ganZhi 干支字符串，如"甲子"、"乙丑"等
+     * @returns 干支在六十甲子中的索引（0-59）
+     */
     static getJiaZiIndex(ganZhi: string): number {
         return LunarUtil.index(ganZhi, LunarUtil.JIA_ZI, 0);
     }
 
+    /**
+     * 将数字转换为十六进制字符串
+     * 
+     * @param n 数字
+     * @returns 十六进制字符串
+     */
     static hex(n: number): string {
         let hex = n.toString(16);
         if (hex.length < 2) {
@@ -1389,6 +1413,13 @@ export class LunarUtil {
         return hex.toUpperCase();
     }
 
+    /**
+     * 获取日宜事项
+     * 
+     * @param monthGanZhi 月干支
+     * @param dayGanZhi 日干支
+     * @returns 日宜事项数组
+     */
     static getDayYi(monthGanZhi: string, dayGanZhi: string): string[] {
         const l: string[] = [];
         const day = LunarUtil.hex(LunarUtil.getJiaZiIndex(dayGanZhi));
@@ -1425,6 +1456,13 @@ export class LunarUtil {
         return l;
     }
 
+    /**
+     * 获取日忌事项
+     * 
+     * @param monthGanZhi 月干支
+     * @param dayGanZhi 日干支
+     * @returns 日忌事项数组
+     */
     static getDayJi(monthGanZhi: string, dayGanZhi: string): string[] {
         const l: string[] = [];
         const day = LunarUtil.hex(LunarUtil.getJiaZiIndex(dayGanZhi));
@@ -1460,6 +1498,13 @@ export class LunarUtil {
         return l;
     }
 
+    /**
+     * 获取日吉神
+     * 
+     * @param monthZhiIndex 月支索引
+     * @param dayGanZhi 日干支
+     * @returns 日吉神数组
+     */
     static getDayJiShen(monthZhiIndex: number, dayGanZhi: string): string[] {
         const l: string[] = [];
         let m: number = monthZhiIndex - 2;
@@ -1486,6 +1531,13 @@ export class LunarUtil {
         return l;
     }
 
+    /**
+     * 获取日凶煞
+     * 
+     * @param monthZhiIndex 月支索引
+     * @param dayGanZhi 日干支
+     * @returns 日凶煞数组
+     */
     static getDayXiongSha(monthZhiIndex: number, dayGanZhi: string): string[] {
         const l: string[] = [];
         let m: number = monthZhiIndex - 2;
@@ -1512,6 +1564,13 @@ export class LunarUtil {
         return l;
     }
 
+    /**
+     * 获取时辰宜事项
+     * 
+     * @param dayGanZhi 日干支
+     * @param timeGanZhi 时干支
+     * @returns 时辰宜事项数组
+     */
     static getTimeYi(dayGanZhi: string, timeGanZhi: string): string[] {
         const l: string[] = [];
         const day = LunarUtil.hex(LunarUtil.getJiaZiIndex(dayGanZhi));
@@ -1533,6 +1592,13 @@ export class LunarUtil {
         return l;
     }
 
+    /**
+     * 获取时辰忌事项
+     * 
+     * @param dayGanZhi 日干支
+     * @param timeGanZhi 时干支
+     * @returns 时辰忌事项数组
+     */
     static getTimeJi(dayGanZhi: string, timeGanZhi: string): string[] {
         const l: string[] = [];
         const day = LunarUtil.hex(LunarUtil.getJiaZiIndex(dayGanZhi));
@@ -1554,6 +1620,12 @@ export class LunarUtil {
         return l;
     }
 
+    /**
+     * 获取旬索引
+     * 
+     * @param ganZhi 干支字符串
+     * @returns 旬索引（0-5）
+     */
     static getXunIndex(ganZhi: string): number {
         const gan = LunarUtil.find(ganZhi, LunarUtil.GAN)!;
         const zhi = LunarUtil.find(ganZhi, LunarUtil.ZHI)!;
@@ -1564,14 +1636,33 @@ export class LunarUtil {
         return Math.floor(diff / 2);
     }
 
+    /**
+     * 获取旬
+     * 
+     * @param ganZhi 干支字符串
+     * @returns 旬名称
+     */
     static getXun(ganZhi: string): string {
         return LunarUtil.XUN[LunarUtil.getXunIndex(ganZhi)];
     }
 
+    /**
+     * 获取旬空
+     * 
+     * @param ganZhi 干支字符串
+     * @returns 旬空信息
+     */
     static getXunKong(ganZhi: string): string {
         return LunarUtil.XUN_KONG[LunarUtil.getXunIndex(ganZhi)];
     }
 
+    /**
+     * 在数组中查找包含指定字符串的元素
+     * 
+     * @param s 要查找的字符串
+     * @param arr 数组
+     * @returns 找到的元素及其索引，未找到则返回null
+     */
     static find(s: string, arr: Array<string>): IndexValue | null {
         for (let i = 0, j = arr.length; i < j; i++) {
             const v = arr[i];
@@ -1588,6 +1679,14 @@ export class LunarUtil {
         return null;
     }
 
+    /**
+     * 获取元素在数组中的索引
+     * 
+     * @param name 要查找的元素
+     * @param names 数组
+     * @param offset 偏移量
+     * @returns 元素在数组中的索引加上偏移量，未找到则返回-1
+     */
     static index(name: string, names: Array<string>, offset: number): number {
         for (let i = 0, j = names.length; i < j; i++) {
             if (names[i] === name) {

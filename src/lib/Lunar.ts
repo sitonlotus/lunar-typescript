@@ -12,6 +12,9 @@ import {Foto} from './Foto';
 import {Tao} from './Tao';
 import {I18n} from './I18n';
 
+/**
+ * 农历信息接口
+ */
 interface LunarInfo {
     timeGanIndex: number;
     timeZhiIndex: number;
@@ -36,6 +39,25 @@ interface LunarInfo {
     jieQiList: string[];
 }
 
+/**
+ * 农历日期类
+ * 提供农历日期的创建、转换、计算等功能，支持干支、生肖、节气、节日等传统历法信息
+ * 
+ * 主要功能包括：
+ * - 农历日期的创建与转换（农历转阳历、阳历转农历）
+ * - 干支纪年、纪月、纪日、纪时
+ * - 生肖信息查询
+ * - 节气信息查询
+ * - 节日信息查询
+ * - 传统文化相关信息（如九九、三伏、纳音、八字等）
+ * - 择日相关信息（如宜忌、吉神、凶神、胎神等）
+ * - 方位、神煞等信息
+ * 
+ * 特殊说明：
+ * - 农历月份：正数表示平月，负数表示闰月（如-5表示闰五月）
+ * - 干支计算：支持以正月初一或立春为界的计算方式
+ * - 精确时间：部分计算支持精确到时刻
+ */
 export class Lunar {
     private _lang: string;
     private readonly _year: number;
@@ -68,10 +90,44 @@ export class Lunar {
     private readonly _solar: Solar;
     private readonly _eightChar: EightChar;
 
+    /**
+     * 从农历年月日创建农历日期（时分秒默认为0）
+     * 
+     * @param lunarYear - 农历年
+     * @param lunarMonth - 农历月（正数表示平月，负数表示闰月，如-5表示闰五月）
+     * @param lunarDay - 农历日
+     * @returns 农历日期对象
+     * 
+     * 示例：
+     * ```typescript
+     * // 创建农历2023年1月1日（正月初一）
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * 
+     * // 创建农历2023年闰2月1日
+     * const leapLunar = Lunar.fromYmd(2023, -2, 1);
+     * ```
+     */
     static fromYmd(lunarYear: number, lunarMonth: number, lunarDay: number): Lunar {
         return Lunar.fromYmdHms(lunarYear, lunarMonth, lunarDay, 0, 0, 0);
     }
 
+    /**
+     * 从农历年月日时分秒创建农历日期
+     * 
+     * @param lunarYear - 农历年
+     * @param lunarMonth - 农历月（正数表示平月，负数表示闰月）
+     * @param lunarDay - 农历日
+     * @param hour - 小时（0-23）
+     * @param minute - 分钟（0-59）
+     * @param second - 秒（0-59）
+     * @returns 农历日期对象
+     * 
+     * 示例：
+     * ```typescript
+     * // 创建农历2023年1月1日12:30:00
+     * const lunar = Lunar.fromYmdHms(2023, 1, 1, 12, 30, 0);
+     * ```
+     */
     static fromYmdHms(lunarYear: number, lunarMonth: number, lunarDay: number, hour: number, minute: number, second: number): Lunar {
         let y = LunarYear.fromYear(lunarYear);
         const m = y.getMonth(lunarMonth);
@@ -93,6 +149,19 @@ export class Lunar {
         return new Lunar(lunarYear, lunarMonth, lunarDay, hour, minute, second, solar, y);
     }
 
+    /**
+     * 从阳历日期创建农历日期
+     * 
+     * @param solar - 阳历日期对象
+     * @returns 农历日期对象
+     * 
+     * 示例：
+     * ```typescript
+     * // 将阳历2023年1月22日转换为农历
+     * const solar = Solar.fromYmd(2023, 1, 22);
+     * const lunar = Lunar.fromSolar(solar); // 返回农历2023年1月1日
+     * ```
+     */
     static fromSolar(solar: Solar): Lunar {
         let lunarYear = 0;
         let lunarMonth = 0;
@@ -112,6 +181,19 @@ export class Lunar {
         return new Lunar(lunarYear, lunarMonth, lunarDay, solar.getHour(), solar.getMinute(), solar.getSecond(), solar, ly);
     }
 
+    /**
+     * 从JavaScript Date对象创建农历日期
+     * 
+     * @param date - JavaScript Date对象
+     * @returns 农历日期对象
+     * 
+     * 示例：
+     * ```typescript
+     * // 将当前日期转换为农历
+     * const now = new Date();
+     * const lunar = Lunar.fromDate(now);
+     * ```
+     */
     static fromDate(date: Date): Lunar {
         return Lunar.fromSolar(Solar.fromDate(date));
     }
@@ -297,6 +379,20 @@ export class Lunar {
         return o;
     }
 
+    /**
+     * 构造函数
+     * 
+     * @param year - 农历年
+     * @param month - 农历月（正数表示平月，负数表示闰月）
+     * @param day - 农历日
+     * @param hour - 小时（0-23）
+     * @param minute - 分钟（0-59）
+     * @param second - 秒（0-59）
+     * @param solar - 对应的阳历日期对象
+     * @param ly - 对应的农历年对象
+     * 
+     * @internal 建议使用静态工厂方法创建实例
+     */
     constructor(year: number, month: number, day: number, hour: number, minute: number, second: number, solar: Solar, ly: LunarYear) {
         const info = Lunar._compute(year, hour, minute, solar, ly);
 
@@ -333,42 +429,113 @@ export class Lunar {
         this._lang = I18n.getLanguage();
     }
 
+    /**
+     * 获取农历年
+     * 
+     * @returns 农历年
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const year = lunar.getYear(); // 返回2023
+     * ```
+     */
     getYear(): number {
         return this._year;
     }
 
+    /**
+     * 获取农历月
+     * 
+     * @returns 农历月（正数表示平月，负数表示闰月）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const month = lunar.getMonth(); // 返回1（正月）
+     * 
+     * const leapLunar = Lunar.fromYmd(2023, -2, 1);
+     * const leapMonth = leapLunar.getMonth(); // 返回-2（闰二月）
+     * ```
+     */
     getMonth(): number {
         return this._month;
     }
 
+    /**
+     * 获取农历日
+     * 
+     * @returns 农历日
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const day = lunar.getDay(); // 返回1（初一）
+     * ```
+     */
     getDay(): number {
         return this._day;
     }
 
+    /**
+     * 获取小时
+     * 
+     * @returns 小时（0-23）
+     */
     getHour(): number {
         return this._hour;
     }
 
+    /**
+     * 获取分钟
+     * 
+     * @returns 分钟（0-59）
+     */
     getMinute(): number {
         return this._minute;
     }
 
+    /**
+     * 获取秒
+     * 
+     * @returns 秒（0-59）
+     */
     getSecond(): number {
         return this._second;
     }
 
+    /**
+     * 获取时天干索引
+     * 
+     * @returns 时天干索引
+     */
     getTimeGanIndex(): number {
         return this._timeGanIndex;
     }
 
+    /**
+     * 获取时地支索引
+     * 
+     * @returns 时地支索引
+     */
     getTimeZhiIndex(): number {
         return this._timeZhiIndex;
     }
 
+    /**
+     * 获取日天干索引
+     * 
+     * @returns 日天干索引
+     */
     getDayGanIndex(): number {
         return this._dayGanIndex;
     }
 
+    /**
+     * 获取日地支索引
+     * 
+     * @returns 日地支索引
+     */
     getDayZhiIndex(): number {
         return this._dayZhiIndex;
     }
@@ -438,146 +605,449 @@ export class Lunar {
         return this.getYearZhi();
     }
 
+    /**
+     * 获取年天干（以正月初一为界）
+     * 
+     * 传统农历纪年以正月初一为新年的开始
+     * 
+     * @returns 年天干（如"甲"、"乙"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const yearGan = lunar.getYearGan(); // 返回"癸"
+     * ```
+     */
     getYearGan(): string {
         return LunarUtil.GAN[this._yearGanIndex + 1];
     }
 
+    /**
+     * 获取年天干（以立春为界）
+     * 
+     * 部分传统计算方式以立春为新年的开始
+     * 
+     * @returns 年天干（如"甲"、"乙"等）
+     */
     getYearGanByLiChun(): string {
         return LunarUtil.GAN[this._yearGanIndexByLiChun + 1];
     }
 
+    /**
+     * 获取年天干（精确到立春时刻）
+     * 
+     * 更精确的计算方式，以立春交接的精确时刻为界
+     * 
+     * @returns 年天干（如"甲"、"乙"等）
+     */
     getYearGanExact(): string {
         return LunarUtil.GAN[this._yearGanIndexExact + 1];
     }
 
+    /**
+     * 获取年地支（以正月初一为界）
+     * 
+     * 传统农历纪年以正月初一为新年的开始
+     * 
+     * @returns 年地支（如"子"、"丑"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const yearZhi = lunar.getYearZhi(); // 返回"卯"
+     * ```
+     */
     getYearZhi(): string {
         return LunarUtil.ZHI[this._yearZhiIndex + 1];
     }
 
+    /**
+     * 获取年地支（以立春为界）
+     * 
+     * 部分传统计算方式以立春为新年的开始
+     * 
+     * @returns 年地支（如"子"、"丑"等）
+     */
     getYearZhiByLiChun(): string {
         return LunarUtil.ZHI[this._yearZhiIndexByLiChun + 1];
     }
 
+    /**
+     * 获取年地支（精确到立春时刻）
+     * 
+     * 更精确的计算方式，以立春交接的精确时刻为界
+     * 
+     * @returns 年地支（如"子"、"丑"等）
+     */
     getYearZhiExact(): string {
         return LunarUtil.ZHI[this._yearZhiIndexExact + 1];
     }
 
+    /**
+     * 获取年干支（以正月初一为界）
+     * 
+     * 传统农历纪年以正月初一为新年的开始
+     * 
+     * @returns 年干支（如"甲子"、"乙丑"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const yearGanZhi = lunar.getYearInGanZhi(); // 返回"癸卯"
+     * ```
+     */
     getYearInGanZhi(): string {
         return this.getYearGan() + this.getYearZhi();
     }
 
+    /**
+     * 获取年干支（以立春为界）
+     * 
+     * 部分传统计算方式以立春为新年的开始
+     * 
+     * @returns 年干支（如"甲子"、"乙丑"等）
+     */
     getYearInGanZhiByLiChun(): string {
         return this.getYearGanByLiChun() + this.getYearZhiByLiChun();
     }
 
+    /**
+     * 获取年干支（精确到立春时刻）
+     * 
+     * 更精确的计算方式，以立春交接的精确时刻为界
+     * 
+     * @returns 年干支（如"甲子"、"乙丑"等）
+     */
     getYearInGanZhiExact(): string {
         return this.getYearGanExact() + this.getYearZhiExact();
     }
 
+    /**
+     * 获取月天干（以节气交接日为准）
+     * 
+     * 农历月份以节气交接日为界，如立春后为寅月
+     * 
+     * @returns 月天干（如"甲"、"乙"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const monthGan = lunar.getMonthGan(); // 返回"癸"
+     * ```
+     */
     getMonthGan(): string {
         return LunarUtil.GAN[this._monthGanIndex + 1];
     }
 
+    /**
+     * 获取月天干（精确到节气交接时刻）
+     * 
+     * @returns 月天干（如"甲"、"乙"等）
+     */
     getMonthGanExact(): string {
         return LunarUtil.GAN[this._monthGanIndexExact + 1];
     }
 
+    /**
+     * 获取月地支（以节气交接日为准）
+     * 
+     * 农历月份以节气交接日为界，如立春后为寅月
+     * 
+     * @returns 月地支（如"子"、"丑"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const monthZhi = lunar.getMonthZhi(); // 返回"丑"
+     * ```
+     */
     getMonthZhi(): string {
         return LunarUtil.ZHI[this._monthZhiIndex + 1];
     }
 
+    /**
+     * 获取月地支（精确到节气交接时刻）
+     * 
+     * @returns 月地支（如"子"、"丑"等）
+     */
     getMonthZhiExact(): string {
         return LunarUtil.ZHI[this._monthZhiIndexExact + 1];
     }
 
+    /**
+     * 获取月干支（以节气交接日为准）
+     * 
+     * 农历月份以节气交接日为界，如立春后为寅月
+     * 
+     * @returns 月干支（如"甲子"、"乙丑"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const monthGanZhi = lunar.getMonthInGanZhi(); // 返回"癸丑"
+     * ```
+     */
     getMonthInGanZhi(): string {
         return this.getMonthGan() + this.getMonthZhi();
     }
 
+    /**
+     * 获取月干支（精确到节气交接时刻）
+     * 
+     * @returns 月干支（如"甲子"、"乙丑"等）
+     */
     getMonthInGanZhiExact(): string {
         return this.getMonthGanExact() + this.getMonthZhiExact();
     }
 
+    /**
+     * 获取日天干（以当日0点为准）
+     * 
+     * @returns 日天干（如"甲"、"乙"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const dayGan = lunar.getDayGan(); // 返回"癸"
+     * ```
+     */
+    /**
+     * 获取日天干（以当日0点为准）
+     * 
+     * @returns 日天干（如"甲"、"乙"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const dayGan = lunar.getDayGan(); // 返回"癸"
+     * ```
+     */
     getDayGan(): string {
         return LunarUtil.GAN[this._dayGanIndex + 1];
     }
 
+    /**
+     * 获取日天干（精确到当日23点）
+     * 
+     * @returns 日天干（如"甲"、"乙"等）
+     */
     getDayGanExact(): string {
         return LunarUtil.GAN[this._dayGanIndexExact + 1];
     }
 
+    /**
+     * 获取日天干（精确版本2）
+     * 
+     * @returns 日天干（如"甲"、"乙"等）
+     */
     getDayGanExact2(): string {
         return LunarUtil.GAN[this._dayGanIndexExact2 + 1];
     }
 
+    /**
+     * 获取日地支（以当日0点为准）
+     * 
+     * @returns 日地支（如"子"、"丑"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const dayZhi = lunar.getDayZhi(); // 返回"卯"
+     * ```
+     */
     getDayZhi(): string {
         return LunarUtil.ZHI[this._dayZhiIndex + 1];
     }
 
+    /**
+     * 获取日地支（精确到当日23点）
+     * 
+     * @returns 日地支（如"子"、"丑"等）
+     */
     getDayZhiExact(): string {
         return LunarUtil.ZHI[this._dayZhiIndexExact + 1];
     }
 
+    /**
+     * 获取日地支（精确版本2）
+     * 
+     * @returns 日地支（如"子"、"丑"等）
+     */
     getDayZhiExact2(): string {
         return LunarUtil.ZHI[this._dayZhiIndexExact2 + 1];
     }
 
+    /**
+     * 获取日干支（以当日0点为准）
+     * 
+     * @returns 日干支（如"甲子"、"乙丑"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const dayGanZhi = lunar.getDayInGanZhi(); // 返回"癸卯"
+     * ```
+     */
     getDayInGanZhi(): string {
         return this.getDayGan() + this.getDayZhi();
     }
 
+    /**
+     * 获取日干支（精确到当日23点）
+     * 
+     * @returns 日干支（如"甲子"、"乙丑"等）
+     */
     getDayInGanZhiExact(): string {
         return this.getDayGanExact() + this.getDayZhiExact();
     }
 
+    /**
+     * 获取日干支（精确版本2）
+     * 
+     * @returns 日干支（如"甲子"、"乙丑"等）
+     */
     getDayInGanZhiExact2(): string {
         return this.getDayGanExact2() + this.getDayZhiExact2();
     }
 
+    /**
+     * 获取时天干
+     * 
+     * 时天干根据日天干推导得出
+     * 
+     * @returns 时天干（如"甲"、"乙"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmdHms(2023, 1, 1, 12, 0, 0);
+     * const timeGan = lunar.getTimeGan(); // 返回"戊"
+     * ```
+     */
     getTimeGan(): string {
         return LunarUtil.GAN[this._timeGanIndex + 1];
     }
 
+    /**
+     * 获取时地支
+     * 
+     * 传统中国计时法将一天分为12个时辰，每个时辰对应一个地支
+     * 
+     * @returns 时地支（如"子"、"丑"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmdHms(2023, 1, 1, 12, 0, 0);
+     * const timeZhi = lunar.getTimeZhi(); // 返回"午"
+     * ```
+     */
     getTimeZhi(): string {
         return LunarUtil.ZHI[this._timeZhiIndex + 1];
     }
 
+    /**
+     * 获取时干支
+     * 
+     * @returns 时干支（如"甲子"、"乙丑"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmdHms(2023, 1, 1, 12, 0, 0);
+     * const timeGanZhi = lunar.getTimeInGanZhi(); // 返回"戊午"
+     * ```
+     */
     getTimeInGanZhi(): string {
         return this.getTimeGan() + this.getTimeZhi();
     }
 
+    /**
+     * 获取生肖（getYearShengXiao的别名）
+     * 
+     * 此方法已过时，建议使用 getYearShengXiao() 方法
+     * 
+     * @returns 生肖（如"鼠"、"牛"等）
+     * @deprecated 请使用 getYearShengXiao() 方法
+     */
     getShengxiao(): string {
         return this.getYearShengXiao();
     }
 
+    /**
+     * 获取年生肖（以正月初一为界）
+     * 
+     * 传统农历以正月初一为新年的开始
+     * 
+     * @returns 年生肖（如"鼠"、"牛"等）
+     * 
+     * 示例：
+     * ```typescript
+     * const lunar = Lunar.fromYmd(2023, 1, 1);
+     * const yearShengXiao = lunar.getYearShengXiao(); // 返回"兔"
+     * ```
+     */
     getYearShengXiao(): string {
         return LunarUtil.SHENGXIAO[this._yearZhiIndex + 1];
     }
 
+    /**
+     * 获取年生肖（以立春为界）
+     * 
+     * 部分传统计算方式以立春为新年的开始
+     * 
+     * @returns 年生肖（如"鼠"、"牛"等）
+     */
     getYearShengXiaoByLiChun(): string {
         return LunarUtil.SHENGXIAO[this._yearZhiIndexByLiChun + 1];
     }
 
+    /**
+     * 获取年生肖（精确到立春时刻）
+     * 
+     * @returns 年生肖（如"鼠"、"牛"等）
+     */
     getYearShengXiaoExact(): string {
         return LunarUtil.SHENGXIAO[this._yearZhiIndexExact + 1];
     }
 
+    /**
+     * 获取月生肖
+     * 
+     * @returns 月生肖（如"鼠"、"牛"等）
+     */
     getMonthShengXiao(): string {
         return LunarUtil.SHENGXIAO[this._monthZhiIndex + 1];
     }
 
+    /**
+     * 获取月生肖（精确到节气时刻）
+     * 
+     * @returns 月生肖（如"鼠"、"牛"等）
+     */
     getMonthShengXiaoExact(): string {
         return LunarUtil.SHENGXIAO[this._monthZhiIndexExact + 1];
     }
 
+    /**
+     * 获取日生肖
+     * 
+     * @returns 日生肖（如"鼠"、"牛"等）
+     */
     getDayShengXiao(): string {
         return LunarUtil.SHENGXIAO[this._dayZhiIndex + 1];
     }
 
+    /**
+     * 获取时生肖
+     * 
+     * @returns 时生肖（如"鼠"、"牛"等）
+     */
     getTimeShengXiao(): string {
         return LunarUtil.SHENGXIAO[this._timeZhiIndex + 1];
     }
 
+    /**
+     * 获取年份的中文表示
+     * @returns 年份的中文表示（如"一九八六"）
+     */
     getYearInChinese(): string {
         const y = this._year + '';
         let s = '';
@@ -589,10 +1059,18 @@ export class Lunar {
         return s;
     }
 
+    /**
+     * 获取月份的中文表示
+     * @returns 月份的中文表示（包含闰月信息，如"闰四月"）
+     */
     getMonthInChinese(): string {
         return (this._month < 0 ? '闰' : '') + LunarUtil.MONTH[Math.abs(this._month)];
     }
 
+    /**
+     * 获取日期的中文表示
+     * @returns 日期的中文表示（如"廿一"）
+     */
     getDayInChinese(): string {
         return LunarUtil.DAY[this._day];
     }
@@ -645,6 +1123,27 @@ export class Lunar {
         return this.getDayPositionCaiDesc();
     }
 
+    /**
+     * 获取日喜神方位
+     * 
+     * 喜神是传统命理中的吉神之一
+     * 
+     * @returns 日喜神方位（如"西北"、"东北"等）
+     */
+    /**
+     * 获取日喜神方位
+     * 
+     * 喜神是传统命理中的吉神之一
+     * 
+     * @returns 日喜神方位（如"西北"、"东北"等）
+     */
+    /**
+     * 获取日喜神方位
+     * 
+     * 喜神是传统命理中的吉神之一
+     * 
+     * @returns 日喜神方位（如"西北"、"东北"等）
+     */
     getDayPositionXi(): string {
         return LunarUtil.POSITION_XI[this._dayGanIndex + 1];
     }
@@ -967,6 +1466,10 @@ export class Lunar {
         return '';
     }
 
+    /**
+     * 获取节气（如果当天是节气）
+     * @returns 节气名称，空字符串表示不是节气
+     */
     getJieQi(): string {
         let name = '';
         const keys = Object.keys(this._jieQi);
@@ -1024,6 +1527,10 @@ export class Lunar {
         return v ? v : '';
     }
 
+    /**
+     * 获取农历节日
+     * @returns 农历节日列表
+     */
     getFestivals(): string[] {
         const l: string[] = [];
         const f = LunarUtil.FESTIVAL[this._month + '-' + this._day];
@@ -1070,6 +1577,10 @@ export class Lunar {
         return l;
     }
 
+    /**
+     * 获取八字（年、月、日、时干支）
+     * @returns 八字数组 [年干支, 月干支, 日干支, 时干支]
+     */
     getBaZi(): string[] {
         const bz = this.getEightChar();
         const l: string[] = [];
