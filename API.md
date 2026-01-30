@@ -1,6 +1,6 @@
 # lunar-typescript API 使用说明
 
-本文档说明本库中阳历、阴历、道历、佛历及相关工具类的使用方法。部分方法已过时，文档中会标明并建议替代用法。
+本文档说明本库中阳历、阴历、道历、佛历及相关工具类的使用方法。
 
 ---
 
@@ -47,8 +47,7 @@
 | `isLeapYear()` | 是否闰年 |
 | `getFestivals()` | 主要节日列表（如劳动节、国庆节） |
 | `getOtherFestivals()` | 其他/纪念日列表 |
-| `getXingZuo()` | 星座名称（推荐使用） |
-| `getXingzuo()` | **已过时**，请改用 `getXingZuo()` |
+| `getXingZuo()` | 星座名称 |
 
 ### 日期推移与比较
 
@@ -187,8 +186,7 @@
 | `getMonthInGanZhi()` / `getMonthInGanZhiExact()` | 月干支 |
 | `getDayInGanZhi()` / `getDayInGanZhiExact()` / `getDayInGanZhiExact2()` | 日干支（含晚子时流派） |
 | `getTimeInGanZhi()` | 时干支 |
-| `getYearShengXiao()` | 年生肖（推荐） |
-| `getShengXiao()` | **已过时**，请改用 `getYearShengXiao()` |
+| `getYearShengXiao()` | 年生肖（以正月初一为界） |
 
 ### 节气、节日、物候
 
@@ -404,13 +402,4 @@
 
 ---
 
-## 已过时方法汇总
-
-- **Solar**：`getXingzuo()` → 请使用 `getXingZuo()`。
-- **Lunar**：`getShengXiao()` → 请使用 `getYearShengXiao()`。
-
-其它名称中带 `Exact` 与不带 `Exact` 的成对方法（如日干支、月干支），分别表示「按交接时刻」与「按日」计算，按需选用，不算过时。
-
----
-
-以上为库内主要 API 的用法说明，具体参数与返回值以源码为准。
+以上为库内主要 API 的用法说明，具体参数与返回值以源码为准。名称中带 `Exact` 与不带 `Exact` 的成对方法（如日干支、月干支）分别表示「按交接时刻」与「按日」计算，按需选用。

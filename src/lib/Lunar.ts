@@ -960,18 +960,6 @@ export class Lunar {
     }
 
     /**
-     * 获取生肖（getYearShengXiao的别名）
-     * 
-     * 此方法已过时，建议使用 getYearShengXiao() 方法
-     * 
-     * @returns 生肖（如"鼠"、"牛"等）
-     * @deprecated 请使用 getYearShengXiao() 方法
-     */
-    getShengxiao(): string {
-        return this.getYearShengXiao();
-    }
-
-    /**
      * 获取年生肖（以正月初一为界）
      * 
      * 传统农历以正月初一为新年的开始

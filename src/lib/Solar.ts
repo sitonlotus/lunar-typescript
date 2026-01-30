@@ -489,26 +489,6 @@ export class Solar {
     }
 
     /**
-     * 获取星座（getXingZuo的别名）
-     * 
-     * 此方法是getXingZuo()的别名，为了向后兼容而保留
-     * 建议使用标准的getXingZuo()方法
-     * 
-     * @returns 星座名称
-     * @deprecated 请使用 getXingZuo() 方法
-     * 
-     * 示例：
-     * ```typescript
-     * const solar = Solar.fromYmd(2023, 7, 15);
-     * const xingzuo = solar.getXingzuo(); // 返回"巨蟹座"（已过时）
-     * const xingZuo = solar.getXingZuo(); // 推荐使用此方法
-     * ```
-     */
-    getXingzuo(): string {
-        return this.getXingZuo();
-    }
-
-    /**
      * 获取星座
      * 
      * 根据阳历日期计算对应的星座
